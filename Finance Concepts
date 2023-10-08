@@ -1,0 +1,77 @@
+# Efficient Market Hypothesis
+# Asset prices reflect all available information
+# Random Walk Hyp = Past performance doesn't equal future results. If EMH was true, it would exhibit the RWH
+# However if EMH was true then why trade at all?
+# Investing vs. Trading: Long term vs. Short Term
+# .std() or .mean() Sharpe Ratio = account for risk and return for comparing stocks.
+# riskfreerateofreturn = annualized yield of a risk free investment usually a treasury bond.
+# typically compare on a YoY basis = year
+# Daily % change = df['Adj Close'].pct_change(1).mean()
+# Standard Dev of daily % returns = df['Adj Close'].pct_change(1).std()
+# pandas functions
+# how do we convert daily to yearly (252 trading days) ? multiply daily sharpe ratio by sqrt(252)
+  import pandas as pd
+  aapl = pd.read_csv('apple.csv', index_col='Date', parse_dates=True)
+  msft = pd.read_csv('msft.csv', index_col='Date', parse_dates=True)
+
+  aapl.info()
+  msft.info()
+
+  aapl['Daily Return'] = aapl['Adj Close'].pct_change(1)
+  msft['Daily Return'] = msft['Adj Close'].pct_change(1)
+
+  aapl = aapl.dropna()
+ # aapl -- uncomment to see values
+  aapl['Daily Return'].std()
+
+#Sharpe ratio function
+
+def compute_sharpe_ratio(df, risk_free_rate=0):
+    mean_return= df['Daily Return'].mean()
+    std = df['Daily Return'].std()
+    
+    sharpe_ratio = (mean_return - risk_free_rate)/std
+    # DAILY SHARPE RATIO
+    return sharpe_ratio 
+
+sr_apple = compute_sharpe_ratio(aapl)
+#sr_apple --> uncomment to see value
+
+#annual sharpe ratio eq.
+
+def compute_ann_sharpe_ratio(df, risk_free_rate=0):
+    mean_return= df['Daily Return'].mean()
+    std = df['Daily Return'].std()
+    
+    sharpe_ratio = (mean_return - risk_free_rate)/std
+    # annual SHARPE RATIO
+    return sharpe_ratio * (252**0.5) #np.sqrt(252)
+
+ann_sr_msft = compute_ann_sharpe_ratio(msft)
+#ann_sr_msft --> uncomment to see value
+
+#Sortino Ratio
+#Sharpe ratio is punished by high volatility, so what if we looked for high volatility
+#std wouldn't account for large jumps up
+# Sortino and price argued risk is not synonymous with uncertainty.
+
+# Sortino Ratio equation Mean asset return - risk free return / std dev of downside returns
+#Sortino Ration Eq.
+
+def compute_sortino_ratio(df,threshold=0, risk_free_rate=0):
+    
+    mean_return= df['Daily Return'].mean()
+    #std = df['Daily Return'].std()
+    
+    #VOLATILITY THRESHOLD
+    #T=0 --> Negative Daily Returns
+    downside = df[df['Daily Return']<threshold]['Daily Return']
+    
+    std = downside.std()
+    sortino_ratio = (mean_return - risk_free_rate)/std
+    
+    return sortino_ratio*(252**0.5)
+
+
+sort_aapl = compute_sortino_ratio(aapl)
+sort_aapl
